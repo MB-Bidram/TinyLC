@@ -22,7 +22,7 @@ Making Bindings more Easy without FFI and Direct use of both C++ and a Simple as
   - No library support
   - No standard library
   - Buggy
-  - Not portable accross C++ Compilers ( GNU G++ and Clang can Compile the source code )
+  - Not portable across C++ Compilers ( GNU G++ and Clang can Compile the source code )
 
 
 ## More info about the Design
