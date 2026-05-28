@@ -1,3 +1,4 @@
+# TinyLC 0.1-preview
 **TinyLC** is an experimental Lua-like DSL implemented in C++, designed for minimal overhead and optimization-friendly execution. 
 It aims to combine a simple Lua-like language with direct C++ integration, without relying on FFI.
 
