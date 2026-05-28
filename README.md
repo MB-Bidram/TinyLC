@@ -51,3 +51,10 @@ It aims to combine a simple Lua-like language with direct C++ integration, witho
 
   ### Garbage Collection
   The garbage collector currently uses a **mark-and-sweep** design with an **epoch-based marking optimization**.
+
+\n
+## License
+
+TinyLC is licensed under the Apache License 2.0.
+
+You are free to use, modify, and distribute this project under the terms of the license. See the [LICENSE](LICENSE) file for the full text.
