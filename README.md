@@ -1,49 +1,52 @@
-**Lua DSL in C++** is a Lua like DSL written in C++ aiming to have Minimal overhead with near Native speed,
-Making Bindings more Easy without FFI and Direct use of both C++ and a Simple as possible Lua like Language.
-
-## How could it reach Native speed?
-- No Virtual Machine loop
-- No complex design ( To keep everything optimization friendly )
-- No stack
-
-## What are the Cons and Pros from the Vanilla Lua?
-- ## Cons
-  - No existanse of the Debug library ( There is no Stack or VM )
-  - Less flexible syntax ( C++ limits )
-  - No external Lua C API binded library support
-- ## Pros
-  - Native coroutine library ( Standard C++ Coroutines )
-  - Support for mixture of C++ and Lua DSL
-  - Lightweight
-
-## Current state
-  - Currently the project is solo and slow
-  - No function support
-  - No library support
-  - No standard library
-  - Buggy
-  - Not portable across C++ Compilers ( GNU G++ and Clang can Compile the source code )
-
-
-## More info about the Design
-  The design uses a **Tagged Union** for its Values
-  Because its more CPU friendly and avoids C++ heavy Polymorphism
-  
-  Strings are **Interned**, So they are stored only once in the Memory
-  It works by calculating the Hash of the string first,
-  Then does a lookup in the Global Hash Map.
-  - If found, return a pointer to the existing string
-  - If not, allocate a new memory
-  as memcmp is slow and expensive, the design uses a Pointer comarison to check if they are equal or not
-  because the Hash is pre-calculated and stored, it makes table lookups with string extremely fast.
-
-  The GC uses a Mark-And-Sweep design with Epoch-Based marking Optimization.
-
+**TinyLC** is an experimental Lua-like DSL implemented in C++, designed for minimal overhead and optimization-friendly execution. 
+It aims to combine a simple Lua-like language with direct C++ integration, without relying on FFI.
 
 ## What the DSL aims to be
   - Simple and minimal
-  - Near Lua as possible
-  - Flexible
-  - Avoid C++ RTTS / RAII complexity and overhead
+  - As close to Lua as possible
+  - Nearly as flexible as Lua
+  - Avoid C++ RTTI complexity where possible
+  - Keep runtime structures simple and low-level
   - Minimal overhead
-  - Near Native Speed
+  - Near-native performance
+
+
+## Performance-oriented design
+- No Virtual Machine loop
+- A simpler runtime design intended to remain optimization-friendly
+- No traditional stack-based Virtual Machine
+
+## Trade-offs Compared to Lua
+### Limitations
+  - No debug library support, due to the lack of a traditional VM and VM stack
+  - Less flexible syntax ( C++ limits )
+  - No support for external libraries built around the Lua C API
+### Advantages
+  - Native coroutine library ( Standard C++ Coroutines )
+  - Support for mixing C++ with the Lua-like DSL
+  - Lightweight
+
+## Current state
+  - currently a solo-developed project and remains under active development
+  - No function support
+  - No library support
+  - No standard library
+  - Some behavior is still unstable
+  - Compiler portability is currently limited ( the project currently builds with GCC and Clang )
+
+
+## Design Overview
+  ### Value Representation
+  The design uses a **Tagged Union** for its Values
+  because it is more CPU-friendly and avoids C++ heavy Polymorphism
+  
+  ### String Interning
+  Strings are **Interned**, meaning each unique string is stored only once in memory.
+  The runtime computes the string hash first, then performs a lookup in a global hash map:
+  - If found, return a pointer to the existing string
+  - If not, allocate a new memory
+  Because interned strings can be compared by pointer, equality checks avoid repeated full string comparisons.
+  This also improves the efficiency of string-keyed table lookups.
+
+  ### Garbage Collection
+  The garbage collector currently uses a **mark-and-sweep** design with an **epoch-based marking optimization**.
