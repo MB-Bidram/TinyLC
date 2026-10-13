@@ -36,7 +36,7 @@ It aims to combine a simple Lua-like language with direct C++ integration, witho
   - Compiler portability is currently limited ( the project currently builds with GCC and Clang )
 
 
-## Design Overview
+## Design Overview (high-level, limited, reading the source code itself might be better)
   ### Value Representation
   The design uses a **Tagged Union** for its Values
   because it is more CPU-friendly and avoids C++ heavy Polymorphism
