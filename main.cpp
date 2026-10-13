@@ -186,7 +186,7 @@ namespace tinylc {
 			count(0),
 			allObjects(nullptr),
 			bytesAllocated(0),
-			nextGC(1024 * 1024), // 1MB initial threshold
+			nextGC(1024 * 1024), //1mb
 			gcEnabled(true),
 			currentEpoch(1),
 			gcRunning(false),
@@ -320,7 +320,7 @@ namespace tinylc {
 	// Helper
 	inline const char* objTypeName(ObjType t) {
 		switch (t) {
-		case ObjType::STRING:  return "string";
+			case ObjType::STRING: { return "string"; };
 			// case ObjType::TABLE:   return "table";
 			// case ObjType::FUNCTION:return "function";
 			// case ObjType::THREAD:  return "thread";
@@ -330,20 +330,19 @@ namespace tinylc {
 
 	inline void _printObject(Obj* obj) {
 		switch (obj->type) {
-
-		case ObjType::STRING: {
-			auto* s = static_cast<ObjString*>(obj);
-			std::cout << s->chars;
-			break;
-		}
-
-		default: {
-			std::cout
-				<< objTypeName(obj->type)
-				<< ": "
-				<< "0x" << std::hex << (uintptr_t)obj << std::dec;
-			break;
-		}
+			case ObjType::STRING: {
+				auto* s = static_cast<ObjString*>(obj);
+				std::cout << s->chars;
+				break;
+			};
+	
+			default: {
+				std::cout
+					<< objTypeName(obj->type)
+					<< ": "
+					<< "0x" << std::hex << (uintptr_t)obj << std::dec;
+				break;
+			};
 		}
 	}
 
@@ -352,41 +351,35 @@ namespace tinylc {
 	inline bool stringToNumber(const ObjString* s, double& out) {
 		char* end;
 		out = std::strtod(s->chars, &end);
-
-		// conversion failed if no chars consumed
-		if (end == s->chars)
-			return false;
-
-		// skip trailing whitespace
-		while (*end == ' ' || *end == '\t' || *end == '\n')
-			end++;
-
-		// must consume whole string
+		if (end == s->chars) { return false; }
+		while (*end == ' ' || *end == '\t' || *end == '\n') { end++; }
 		return *end == '\0';
 	}
 
 
 	inline bool toNumber(const Value& v, double& out) {
 		switch (v.type) {
-		case Type::INT:
-			out = (double)v.i;
-			return true;
-
-		case Type::NUM:
-			out = v.n;
-			return true;
-
-		case Type::OBJ:
-			if (v.o->type == ObjType::STRING) {
-				return stringToNumber(
-					static_cast<ObjString*>(v.o),
-					out
-				);
-			}
-			return false;
-
-		default:
-			return false;
+			case Type::INT: {
+				out = (double)v.i;
+				return true;
+			};
+	
+			case Type::NUM: {
+				out = v.n;
+				return true;
+			};
+	
+			case Type::OBJ: {
+				if (v.o->type == ObjType::STRING) {
+					return stringToNumber(
+						static_cast<ObjString*>(v.o),
+						out
+					);
+				}
+				return false;
+			};
+	
+			default: { return false; };
 		}
 	}
 
@@ -404,40 +397,37 @@ namespace tinylc {
 	}
 
 	inline Value tableGetRaw(ObjTable* a, uint32_t i) {
-		if (i >= a->size) return Value();  // Safety check
+		if (i >= a->size) { return Value(); };  // safety check
 
 		auto kind = a->kind;
 		switch (kind) {
-		case ObjTable::ArrayKind::INT:   return Value(a->ints[i]);
-		case ObjTable::ArrayKind::NUM:   return Value(a->nums[i]);
-		case ObjTable::ArrayKind::MIXED: return a->values[i];
+			case ObjTable::ArrayKind::INT: { return Value(a->ints[i]); };
+			case ObjTable::ArrayKind::NUM: { return Value(a->nums[i]); };
+			case ObjTable::ArrayKind::MIXED: { return a->values[i]; };
 		}
 		return {};
 	}
 
 	inline uint32_t hashValue(const Value& k) {
 		switch (k.type) {
-		case Type::INT:  return (uint32_t)k.i * 2654435761u;
-		case Type::NUM: {
-			uint64_t u;
-			std::memcpy(&u, &k.n, sizeof(u));
-			return (uint32_t)(u ^ (u >> 32));
-		}
-		case Type::BOOL: return k.b ? 0xABCDEF01u : 0x12345678u;
-		case Type::OBJ:
-			if (k.o->type == ObjType::STRING)
-				return static_cast<ObjString*>(k.o)->hash;
-			return (uint32_t)(uintptr_t)k.o;
-		default:
-			return 0;
+			case Type::INT: { return (uint32_t)k.i * 2654435761u; };
+			case Type::NUM: {
+				uint64_t u;
+				std::memcpy(&u, &k.n, sizeof(u));
+				return (uint32_t)(u ^ (u >> 32));
+			};
+			case Type::OBJ: {
+				if (k.o->type == ObjType::STRING) { return static_cast<ObjString*>(k.o)->hash; };
+				return (uint32_t)(uintptr_t)k.o;
+			};
+			case Type::BOOL: { return k.b ? 0xABCDEF01u : 0x12345678u; };
+			default: { return 0; };
 		}
 	}
 
 	inline bool keyEqual(const Value& a, const Value& b) {
 		if (a.type != b.type) {
-			// INT vs NUM numeric equality
-			if ((a.type == Type::INT && b.type == Type::NUM) ||
-				(a.type == Type::NUM && b.type == Type::INT)) {
+			if ((a.type == Type::INT && b.type == Type::NUM) || (a.type == Type::NUM && b.type == Type::INT)) {
 				double av = (a.type == Type::INT) ? (double)a.i : a.n;
 				double bv = (b.type == Type::INT) ? (double)b.i : b.n;
 				return av == bv;
@@ -446,17 +436,17 @@ namespace tinylc {
 		}
 
 		switch (a.type) {
-		case Type::INT:  return a.i == b.i;
-		case Type::NUM:  return a.n == b.n;
-		case Type::BOOL: return a.b == b.b;
-		case Type::OBJ:  return a.o == b.o;
-		case Type::NIL:  return true;
+			case Type::INT: { return a.i == b.i; };
+			case Type::NUM: { return a.n == b.n; };
+			case Type::BOOL: { return a.b == b.b; };
+			case Type::OBJ: { return a.o == b.o; };
+			case Type::NIL: { return true; };
 		}
 		return false;
 	}
 
 	inline void ensureHash(ObjTable* t) {
-		if (t->hash) return;
+		if (t->hash) { return; };
 
 		State& S = runtime();
 
@@ -473,22 +463,19 @@ namespace tinylc {
 		t->hash = h;
 	}
 
-	inline ObjTableHash* tableHash(ObjTable* t) {
-		return (ObjTableHash*)t->hash;
-	}
+	inline ObjTableHash* tableHash(ObjTable* t) { return (ObjTableHash*)t->hash; }
 
 
 	inline HashEntry* hashFind(ObjTable* t, const Value& key) {
-		if (!t->hash)
-			luaError("internal error: hashFind on table without hash");
+		if (!t->hash) { luaError("internal error: hashFind on table without hash"); };
+		
 		ObjTableHash* h = tableHash(t);
 		uint32_t mask = h->cap - 1;
 
 		uint32_t i = hashValue(key) & mask;
 		for (;;) {
 			HashEntry* e = &h->data[i];
-			if (e->key.type == Type::NIL || keyEqual(e->key, key))
-				return e;
+			if (e->key.type == Type::NIL || keyEqual(e->key, key)) { return e; };
 			i = (i + 1) & mask;
 		}
 	}
@@ -498,20 +485,14 @@ namespace tinylc {
 	// Garbage Collector
 	[[gnu::cold]]
 	inline void markObject(State& S, Obj* obj) {
-		if (!obj) return;
-
-		// sanity: object from future?
-		if (obj->markEpoch > S.currentEpoch) {
-			std::abort();
-		}
-
-		if (obj->markEpoch == S.currentEpoch)
-			return;
+		if (!obj) { return; };
+		
+		if (obj->markEpoch > S.currentEpoch) { std::abort(); }
+		if (obj->markEpoch == S.currentEpoch) { return; };
 
 		obj->markEpoch = S.currentEpoch;
 
-		if (obj->type == ObjType::TABLE)
-			markTable(S, obj);
+		if (obj->type == ObjType::TABLE) { markTable(S, obj); };
 	}
 
 	inline void freeString(State& S, Obj* obj) {
@@ -530,32 +511,24 @@ namespace tinylc {
 				*p = obj->next;
 				obj->free(S, obj);
 			}
-			else {
-				p = &obj->next;
-			}
+			else { p = &obj->next; }
 		}
 	}
 
 	[[gnu::cold]]
 	inline void collectGarbage(State& S) {
 		//debugListObjects(S);
-
 		S.gcRunning = true;
 		S.currentEpoch++;
 
-		// ---- Mark Phase (roots)
 		markObject(S, (Obj*)S.registry);
 		markInternTable(S);
 
-		// MARK LOCALS (root stack)
 		for (uint32_t i = 0; i < S.rootTop; ++i) {
 			tinylc::Value* v = S.roots[i];
-			if (v && v->type == tinylc::Type::OBJ)
-				markObject(S, v->o);
+			if (v && v->type == tinylc::Type::OBJ) { markObject(S, v->o); }
 		}
-
-
-		// ---- Sweep Phase
+		
 		sweep(S);
 
 		S.nextGC = S.bytesAllocated * 2 + 1024;
@@ -570,19 +543,17 @@ namespace tinylc {
 
 		// array
 		if (t->kind == ObjTable::ArrayKind::MIXED) {
-			for (uint32_t i = 0; i < t->size; ++i)
-				if (t->values[i].type == Type::OBJ)
-					markObject(S, t->values[i].o);
+			for (uint32_t i = 0; i < t->size; ++i) {
+				if (t->values[i].type == Type::OBJ) { markObject(S, t->values[i].o); }
+			}
 		}
 
 		// hash
 		if (t->hash) {
 			ObjTableHash* h = tableHash(t);
 			for (uint32_t i = 0; i < h->cap; ++i) {
-				if (h->data[i].key.type == Type::OBJ)
-					markObject(S, h->data[i].key.o);
-				if (h->data[i].value.type == Type::OBJ)
-					markObject(S, h->data[i].value.o);
+				if (h->data[i].key.type == Type::OBJ) { markObject(S, h->data[i].key.o); }
+				if (h->data[i].value.type == Type::OBJ) { markObject(S, h->data[i].value.o); }
 			}
 		}
 	}
@@ -590,43 +561,41 @@ namespace tinylc {
 	inline void freeTable(State& S, Obj* obj) {
 		auto* t = (ObjTable*)obj;
 
-		// Save everything we need BEFORE accessing any union members
 		auto kind = t->kind;
 		auto capacity = t->capacity;
 		auto hash = t->hash;
-
-		// Get the correct array pointer based on current kind
+		
 		void* arrayPtr = nullptr;
 		size_t elemSize = 0;
 
 		switch (kind) {
-		case ObjTable::ArrayKind::INT:
-			arrayPtr = t->ints;
-			elemSize = sizeof(int64_t);
-			break;
-		case ObjTable::ArrayKind::NUM:
-			arrayPtr = t->nums;
-			elemSize = sizeof(double);
-			break;
-		case ObjTable::ArrayKind::MIXED:
-			arrayPtr = t->values;
-			elemSize = sizeof(Value);
-			break;
+			case ObjTable::ArrayKind::INT: {
+				arrayPtr = t->ints;
+				elemSize = sizeof(int64_t);
+				break;
+			};
+			case ObjTable::ArrayKind::NUM: {
+				arrayPtr = t->nums;
+				elemSize = sizeof(double);
+				break;
+			};
+			case ObjTable::ArrayKind::MIXED: {
+				arrayPtr = t->values;
+				elemSize = sizeof(Value);
+				break;
+			};
+
+			default: { printf("Unhandled *::ArrayKind:: (Int)%d\n", kind) std::abort(); };
 		}
 
-		// Deallocate hash part first (if exists)
 		if (hash) {
 			ObjTableHash* h = (ObjTableHash*)hash;
 			deallocate(S, h->data, sizeof(HashEntry) * h->cap);
 			deallocate(S, h, sizeof(ObjTableHash));
 		}
 
-		// Deallocate array part
-		if (arrayPtr) {
-			deallocate(S, arrayPtr, elemSize * capacity);
-		}
+		if (arrayPtr) { deallocate(S, arrayPtr, elemSize * capacity); };
 
-		// Finally deallocate the table object itself
 		deallocate(S, t, sizeof(ObjTable));
 	}
 
@@ -653,43 +622,40 @@ namespace tinylc {
 	}
 
 	inline void tableEnsure(ObjTable* a, uint32_t index) {
-		if (index < a->capacity)
-			return;
+		if (index < a->capacity) { return; }
 
 		uint32_t newCap = a->capacity;
-		while (newCap <= index)
-			newCap *= 2;
+		while (newCap <= index) { newCap *= 2; }
 
 		State& S = runtime();
 
 		switch (a->kind) {
-		case ObjTable::ArrayKind::INT: {
-			int64_t* p = (int64_t*)allocate(S, sizeof(int64_t) * newCap);
-			std::memcpy(p, a->ints, sizeof(int64_t) * a->capacity);
-			std::memset(p + a->capacity, 0, sizeof(int64_t) * (newCap - a->capacity));
-			deallocate(S, a->ints, sizeof(int64_t) * a->capacity);
-			a->ints = p;
-			break;
-		}
-
-		case ObjTable::ArrayKind::NUM: {
-			double* p = (double*)allocate(S, sizeof(double) * newCap);
-			std::memcpy(p, a->nums, sizeof(double) * a->capacity);
-			std::memset(p + a->capacity, 0, sizeof(double) * (newCap - a->capacity));
-			deallocate(S, a->nums, sizeof(double) * a->capacity);
-			a->nums = p;
-			break;
-		}
-
-		case ObjTable::ArrayKind::MIXED: {
-			Value* p = (Value*)allocate(S, sizeof(Value) * newCap);
-			std::memcpy(p, a->values, sizeof(Value) * a->capacity);
-			for (uint32_t i = a->capacity; i < newCap; ++i)
-				p[i] = Value();
-			deallocate(S, a->values, sizeof(Value) * a->capacity);
-			a->values = p;
-			break;
-		}
+			case ObjTable::ArrayKind::INT: {
+				int64_t* p = (int64_t*)allocate(S, sizeof(int64_t) * newCap);
+				std::memcpy(p, a->ints, sizeof(int64_t) * a->capacity);
+				std::memset(p + a->capacity, 0, sizeof(int64_t) * (newCap - a->capacity));
+				deallocate(S, a->ints, sizeof(int64_t) * a->capacity);
+				a->ints = p;
+				break;
+			};
+	
+			case ObjTable::ArrayKind::NUM: {
+				double* p = (double*)allocate(S, sizeof(double) * newCap);
+				std::memcpy(p, a->nums, sizeof(double) * a->capacity);
+				std::memset(p + a->capacity, 0, sizeof(double) * (newCap - a->capacity));
+				deallocate(S, a->nums, sizeof(double) * a->capacity);
+				a->nums = p;
+				break;
+			};
+	
+			case ObjTable::ArrayKind::MIXED: {
+				Value* p = (Value*)allocate(S, sizeof(Value) * newCap);
+				std::memcpy(p, a->values, sizeof(Value) * a->capacity);
+				for (uint32_t i = a->capacity; i < newCap; ++i) { p[i] = Value(); }
+				deallocate(S, a->values, sizeof(Value) * a->capacity);
+				a->values = p;
+				break;
+			};
 		}
 
 		a->capacity = newCap;
@@ -701,8 +667,7 @@ namespace tinylc {
 		State& S = runtime();
 
 		double* p = (double*)allocate(S, sizeof(double) * a->capacity);
-		for (uint32_t i = 0; i < a->size; ++i)
-			p[i] = (double)a->ints[i];
+		for (uint32_t i = 0; i < a->size; ++i) { p[i] = (double)a->ints[i]; }
 
 		deallocate(S, a->ints, sizeof(int64_t) * a->capacity);
 		a->nums = p;
@@ -715,18 +680,15 @@ namespace tinylc {
 		Value* p = (Value*)allocate(S, sizeof(Value) * a->capacity);
 
 		if (a->kind == ObjTable::ArrayKind::INT) {
-			for (uint32_t i = 0; i < a->size; ++i)
-				p[i] = Value(a->ints[i]);
+			for (uint32_t i = 0; i < a->size; ++i) { p[i] = Value(a->ints[i]); }
 			deallocate(S, a->ints, sizeof(int64_t) * a->capacity);
 		}
 		else {
-			for (uint32_t i = 0; i < a->size; ++i)
-				p[i] = Value(a->nums[i]);
+			for (uint32_t i = 0; i < a->size; ++i) { p[i] = Value(a->nums[i]); }
 			deallocate(S, a->nums, sizeof(double) * a->capacity);
 		}
 
-		for (uint32_t i = a->size; i < a->capacity; ++i)
-			p[i] = Value();
+		for (uint32_t i = a->size; i < a->capacity; ++i) { p[i] = Value(); }
 
 		a->values = p;
 		a->kind = ObjTable::ArrayKind::MIXED;
@@ -739,8 +701,7 @@ namespace tinylc {
 	inline void growInternTable(State& S) {
 		size_t newCap = S.capacity * 2;
 
-		InternNode** newBuckets =
-			(InternNode**)xmalloc(sizeof(InternNode*) * newCap);
+		InternNode** newBuckets = (InternNode**)xmalloc(sizeof(InternNode*) * newCap);
 
 		std::memset(newBuckets, 0, sizeof(InternNode*) * newCap);
 
@@ -773,8 +734,9 @@ namespace tinylc {
 			ObjString* s = it->str;
 			if (s->hash == hash &&
 				s->length == length &&
-				std::memcmp(s->chars, chars, length) == 0)
+				std::memcmp(s->chars, chars, length) == 0) {
 				return s;
+			}
 		}
 
 		auto* s = (ObjString*)allocate(S, sizeof(ObjString));
@@ -797,15 +759,12 @@ namespace tinylc {
 		S.buckets[index] = node;
 
 		S.count++;
-		if (S.count > S.capacity * 0.75)
-			growInternTable(S);
+		if (S.count > S.capacity * 0.75) { growInternTable(S); };
 
 		return s;
 	}
 
-	inline Value makeString(const char* s) {
-		return Value(newString(s, std::strlen(s)));
-	}
+	inline Value makeString(const char* s) { return Value(newString(s, std::strlen(s))); }
 
 	inline int compareStrings(const ObjString* a, const ObjString* b) {
 		size_t minLen = a->length < b->length ? a->length : b->length;
@@ -820,36 +779,37 @@ namespace tinylc {
 	// Standard Lib
 	inline void _printValue(const Value& v) {
 		switch (v.type) {
+			case Type::INT: {
+				std::cout << v.i;
+				break;
+			};
+			case Type::NUM: {
+				std::cout << v.n;
+				break;
+			};
+			case Type::BOOL: {
+				std::cout << (v.b ? "true" : "false");
+				break;
+			};
+			case Type::NIL: {
+				std::cout << "nil";
+				break;
+			};
+			case Type::OBJ: {
+				_printObject(v.o);
+				break;
+			};
 
-		case Type::INT:
-			std::cout << v.i;
-			break;
-
-		case Type::NUM:
-			std::cout << v.n;
-			break;
-
-		case Type::BOOL:
-			std::cout << (v.b ? "true" : "false");
-			break;
-
-		case Type::NIL:
-			std::cout << "nil";
-			break;
-
-		case Type::OBJ:
-			_printObject(v.o);
-			break;
-		}
+			default: { printf("Unhandled Value/Type (Type::*) (Int)%d\n", v.type) std::abort(); };
 	}
 
 	inline const char* typeName(Type t) {
 		switch (t) {
-		case Type::NIL:  return "nil";
-		case Type::INT:  return "number";
-		case Type::NUM:  return "number";
-		case Type::BOOL: return "boolean";
-		case Type::OBJ:  return "object";
+			case Type::NIL: { return "nil"; };
+			case Type::INT: { return "number"; };
+			case Type::NUM: { return "number"; };
+			case Type::BOOL: { return "boolean"; };
+			case Type::OBJ: { return "object"; };
 		}
 		return "unknown";
 	}
@@ -864,26 +824,23 @@ namespace tinylc {
 
 	inline double gc(State& S, GCOp op) {
 		switch (op) {
-		case GCOp::STOP:
-			S.gcEnabled = false;
-			return 0;
-
-		case GCOp::RESTART:
-			S.gcEnabled = true;
-			return 0;
-
-		case GCOp::COLLECT:
-			if (S.gcEnabled)
-				collectGarbage(S);
-			return 0;
-
-		case GCOp::COUNT:
-			return (double)S.bytesAllocated / 1024.0;
-
-		case GCOp::STEP:
-			if (S.gcEnabled)
-				collectGarbage(S);
-			return 0;
+			case GCOp::STOP: {
+				S.gcEnabled = false;
+				return 0;
+			};
+			case GCOp::RESTART: {
+				S.gcEnabled = true;
+				return 0;
+			};
+			case GCOp::COLLECT: {
+				if (S.gcEnabled) { collectGarbage(S); };
+				return 0;
+			};
+			case GCOp::COUNT: { return (double)S.bytesAllocated / 1024.0; };
+			case GCOp::STEP: {
+				if (S.gcEnabled) { collectGarbage(S); };
+				return 0;
+			};
 		}
 
 		return 0;
@@ -893,77 +850,62 @@ namespace tinylc {
 		State& S = runtime();
 
 		switch (v.type) {
-
-		case Type::NIL:
-			return makeString("nil");
-
-		case Type::BOOL:
-			return makeString(v.b ? "true" : "false");
-
-		case Type::INT:
-		case Type::NUM: {
-			double n = (v.type == Type::INT)
-				? (double)v.i
-				: v.n;
-
-			// Cached numeric strings
-			for (uint32_t i = 0; i < S.numStrCount; ++i) {
-				if (S.numStrCache[i].num == n)
-					return Value((Obj*)S.numStrCache[i].str);
-			}
-
-			char buf[64];
-
-			if (v.type == Type::INT)
-				std::snprintf(buf, sizeof(buf),
-					"%lld", (long long)v.i);
-			else
-				std::snprintf(buf, sizeof(buf),
-					"%.14g", n);
-
-			ObjString* s = newString(buf, std::strlen(buf));
-
-			if (S.numStrCount < S.numStrCap) {
-				S.numStrCache[S.numStrCount++] = { n, s };
-			}
-			else if (S.numStrCap > 0) {
-				uint32_t slot =
-					((uint32_t)n) & (S.numStrCap - 1);
-
-				S.numStrCache[slot] = { n, s };
-			}
-
-			return Value((Obj*)s);
-		}
-
-		case Type::OBJ: {
-
-			// Lua strings return themselves
-			if (v.o->type == ObjType::STRING)
-				return v;
-
-			char buf[128];
-
-			switch (v.o->type) {
-
-			case ObjType::TABLE:
-				std::snprintf(
-					buf,
-					sizeof(buf),
-					"table: %p",
-					(void*)v.o
-				);
-				return makeString(buf);
-			default:
-				std::snprintf(
-					buf,
-					sizeof(buf),
-					"object: %p",
-					(void*)v.o
-				);
-				return makeString(buf);
-			}
-		}
+			case Type::NIL: { return makeString("nil"); };
+			case Type::BOOL: { return makeString(v.b ? "true" : "false"); };
+	
+			case Type::INT:
+			case Type::NUM: {
+				double n = (v.type == Type::INT)
+					? (double)v.i
+					: v.n;
+				// cached
+				for (uint32_t i = 0; i < S.numStrCount; ++i) { if (S.numStrCache[i].num == n) { return Value((Obj*)S.numStrCache[i].str); }; }
+	
+				char buf[64];
+				if (v.type == Type::INT) {
+					std::snprintf(buf, sizeof(buf),
+						"%lld", (long long)v.i);
+				} else {
+					std::snprintf(buf, sizeof(buf),
+						"%.14g", n);
+				}
+	
+				ObjString* s = newString(buf, std::strlen(buf));
+	
+				if (S.numStrCount < S.numStrCap) { S.numStrCache[S.numStrCount++] = { n, s }; }
+				else if (S.numStrCap > 0) {
+					uint32_t slot = ((uint32_t)n) & (S.numStrCap - 1);
+					S.numStrCache[slot] = { n, s };
+				}
+	
+				return Value((Obj*)s);
+			};
+	
+			case Type::OBJ: {
+				if (v.o->type == ObjType::STRING) { return v; } // tostring(type: string) -> string (itself)
+	
+				char buf[128];
+				switch (v.o->type) {
+					case ObjType::TABLE: {
+						std::snprintf(
+							buf,
+							sizeof(buf),
+							"table: %p",
+							(void*)v.o
+						);
+						return makeString(buf);
+					};
+					default: {
+						std::snprintf(
+							buf,
+							sizeof(buf),
+							"object: %p",
+							(void*)v.o
+						);
+						return makeString(buf);
+					};
+				}
+			};
 		}
 
 		return makeString("unknown");
@@ -972,16 +914,14 @@ namespace tinylc {
 	inline Value tonumber(const Value& v) {
 		double out;
 		if (toNumber(v, out)) {
-			if ((int64_t)out == out)
-				return Value((int64_t)out);
+			if ((int64_t)out == out) { return Value((int64_t)out); }
 			return Value(out);
 		}
 		return Value(); // nil
 	}
 
 	inline Value tableGet(ObjTable* a, uint32_t i) {
-		if (i >= a->size)
-			return Value(); // NIL
+		if (i >= a->size) { return Value(); } // nil
 		return tableGetRaw(a, i);
 	}
 
@@ -989,49 +929,45 @@ namespace tinylc {
 		tableEnsure(a, index);
 
 		switch (a->kind) {
-		case ObjTable::ArrayKind::INT:
-			if (v.type == Type::INT) {
-				a->ints[index] = v.i;
+			case ObjTable::ArrayKind::INT: {
+				if (v.type == Type::INT) {
+					a->ints[index] = v.i;
+					break;
+				}
+				if (v.type == Type::NUM) {
+					promoteIntToNum(a);
+					a->nums[index] = v.n;
+					break;
+				}
+				promoteToMixed(a);
+				a->values[index] = v;
 				break;
-			}
-			if (v.type == Type::NUM) {
-				promoteIntToNum(a);
-				a->nums[index] = v.n;
+			};
+			case ObjTable::ArrayKind::NUM: {
+				if (v.type == Type::INT || v.type == Type::NUM) {
+					a->nums[index] = (v.type == Type::INT) ? (double)v.i : v.n;
+					break;
+				}
+				promoteToMixed(a);
+				a->values[index] = v;
 				break;
-			}
-			promoteToMixed(a);
-			a->values[index] = v;
-			break;
-
-		case ObjTable::ArrayKind::NUM:
-			if (v.type == Type::INT || v.type == Type::NUM) {
-				a->nums[index] = (v.type == Type::INT) ? (double)v.i : v.n;
+			};
+			case ObjTable::ArrayKind::MIXED: {
+				a->values[index] = v;
 				break;
-			}
-			promoteToMixed(a);
-			a->values[index] = v;
-			break;
-
-		case ObjTable::ArrayKind::MIXED:
-			a->values[index] = v;
-			break;
+			};
 		}
 
-		if (index >= a->size)
-			a->size = index + 1;
+		if (index >= a->size) { a->size = index + 1; };
 	}
 
-	inline Value makeTable() {
-		return Value((Obj*)newTable());
-	}
-
+	inline Value makeTable() { return Value((Obj*)newTable()); }
 
 
 	// Registery
 	inline uint32_t registryAdd(State& S, const Value& v) {
 		ObjTable* r = S.registry;
 
-		// reuse free slot if available
 		if (S.freeReg != UINT32_MAX) {
 			uint32_t idx = S.freeReg;
 			Value next = tableGet(r, idx);
@@ -1092,13 +1028,15 @@ namespace tinylc {
 
 		if (a.type == b.type) {
 			switch (a.type) {
-			case Type::NIL:  return Value(true);
-			case Type::INT:  return Value(a.i == b.i);
-			case Type::NUM:  return Value(a.n == b.n);
-			case Type::BOOL: return Value(a.b == b.b);
-			case Type::OBJ:  if (a.o->type == ObjType::STRING && b.o->type == ObjType::STRING)
-				return Value(a.o == b.o);
-			}
+				case Type::NIL: { return Value(true); };
+				case Type::INT: { return Value(a.i == b.i); };
+				case Type::NUM: { return Value(a.n == b.n); };
+				case Type::BOOL: { return Value(a.b == b.b); };
+				case Type::OBJ: { 
+					if (a.o->type == ObjType::STRING && b.o->type == ObjType::STRING) } { 
+						return Value(a.o == b.o); 
+					}
+				}
 		}
 
 		// INT vs NUM
@@ -1139,15 +1077,13 @@ namespace tinylc {
 	}
 
 	[[gnu::always_inline]]
-	inline Value _gt(const Value& a, const Value& b) {
-		return _lt(b, a);
-	}
+	inline Value _gt(const Value& a, const Value& b) { return _lt(b, a); }
 
 	[[gnu::always_inline]]
 	inline Value _le(const Value& a, const Value& b) {
 		Value lt = _lt(a, b);
-		if (lt.type == Type::BOOL && lt.b)
-			return Value(true);
+		if (lt.type == Type::BOOL && lt.b) { return Value(true); }
+		
 		Value eq = _eq(a, b);
 		return eq;
 	}
@@ -1155,8 +1091,8 @@ namespace tinylc {
 	[[gnu::always_inline]]
 	inline Value _ge(const Value& a, const Value& b) {
 		Value lt = _lt(b, a);
-		if (lt.type == Type::BOOL && lt.b)
-			return Value(true);
+		if (lt.type == Type::BOOL && lt.b) { return Value(true); }
+		
 		Value eq = _eq(a, b);
 		return eq;
 	}
@@ -1203,8 +1139,7 @@ namespace lua {
 
 			auto& S = tinylc::runtime();
 
-			if (S.rootTop >= S.rootCap)
-				tinylc::growRoots(S);
+			if (S.rootTop >= S.rootCap) { tinylc::growRoots(S); }
 
 			rootIndex = S.rootTop;
 			S.roots[S.rootTop++] = &v;
@@ -1246,76 +1181,56 @@ namespace lua {
 		explicit local(bool b) noexcept : v(b), rootIndex(-1) {}
 
 		local(const char* s) : v(tinylc::makeString(s)), rootIndex(-1) {
-			_register();  // ← strings need GC protection
+			_register(); // gc protection for strings
 		}
 
 		local(const local& other) : v(other.v), rootIndex(-1) {
-			if (rootIndex >= 0)
-				_register();
+			if (rootIndex >= 0) { _register(); }
 		}
 
 		local& operator=(const local& other) {
 			if (this == &other) return *this;
 
 			// Unregister if we were tracking an object
-			if (v.type == tinylc::Type::OBJ )
-				_unregister();
-
+			if (v.type == tinylc::Type::OBJ ) { _unregister(); }
 			v = other.v;
 
 			// Register if new value is an object
-			if (rootIndex >= 0)
-				_register();
+			if (rootIndex >= 0) { _register(); }
 
 			return *this;
 		}
 
 		local(local&& other) noexcept : v(other.v), rootIndex(-1) {
-			if (rootIndex >= 0)
-				_register();
+			if (rootIndex >= 0) { _register(); }
 		}
 
 		local& operator=(local&& other) noexcept {
 			if (this == &other) return *this;
-
-			if (v.type == tinylc::Type::OBJ )
-				_unregister();
-
+			
+			if (v.type == tinylc::Type::OBJ) { _unregister(); }
 			v = other.v;
 
-			if (rootIndex >= 0)
-				_register();
+			if (rootIndex >= 0) { _register(); }
 
 			return *this;
 		}
 
-		~local() noexcept {
-			_unregister();
-		}
+		~local() noexcept { _unregister(); }
 
 
 
 		[[gnu::always_inline]]
-		inline local operator+(const local& rhs) const {
-			return fromValue(tinylc::_add(v, rhs.v));
-		}
+		inline local operator+(const local& rhs) const { return fromValue(tinylc::_add(v, rhs.v)); }
 
 		[[gnu::always_inline]]
-		inline local operator-(const local& rhs) const {
-			return fromValue(tinylc::_sub(v, rhs.v));
-		}
+		inline local operator-(const local& rhs) const { return fromValue(tinylc::_sub(v, rhs.v)); }
 
 		[[gnu::always_inline]]
-		inline local operator*(const local& rhs) const {
-			return fromValue(tinylc::_mul(v, rhs.v));
-		}
+		inline local operator*(const local& rhs) const { return fromValue(tinylc::_mul(v, rhs.v)); }
 
 		[[gnu::always_inline]]
-		inline local operator/(const local& rhs) const {
-			return fromValue(tinylc::_div(v, rhs.v));
-		}
-
-
+		inline local operator/(const local& rhs) const { return fromValue(tinylc::_div(v, rhs.v)); }
 
 		[[gnu::always_inline]]
 		inline local& operator+=(int64_t rhs) {
@@ -1323,7 +1238,7 @@ namespace lua {
 				v.i += rhs;
 				return *this;
 			}
-			// recover: try to get a number back
+
 			double n;
 			if (tinylc::toNumber(v, n)) {
 				int64_t as_int = (int64_t)n + rhs;
@@ -1346,7 +1261,7 @@ namespace lua {
 				v.i -= rhs;
 				return *this;
 			}
-			// recover: try to get a number back
+
 			double n;
 			if (tinylc::toNumber(v, n)) {
 				int64_t as_int = (int64_t)n - rhs;
@@ -1395,28 +1310,14 @@ namespace lua {
 
 
 
-		inline local operator==(const local& rhs) const {
-			return fromValue(tinylc::_eq(v, rhs.v));
-		}
 
-		inline local operator<(const local& rhs) const {
-			return fromValue(tinylc::_lt(v, rhs.v));
-		}
-
-		inline local operator>(const local& rhs) const {
-			return fromValue(tinylc::_gt(v, rhs.v));
-		}
-
-		inline local operator<=(const local& rhs) const {
-			return fromValue(tinylc::_le(v, rhs.v));
-		}
-
-		inline local operator>=(const local& rhs) const {
-			return fromValue(tinylc::_ge(v, rhs.v));
-		}
+		inline local operator==(const local& rhs) const { return fromValue(tinylc::_eq(v, rhs.v)); }
+		inline local operator<(const local& rhs) const { return fromValue(tinylc::_lt(v, rhs.v)); }
+		inline local operator>(const local& rhs) const { return fromValue(tinylc::_gt(v, rhs.v)); }
+		inline local operator<=(const local& rhs) const { return fromValue(tinylc::_le(v, rhs.v)); }
+		inline local operator>=(const local& rhs) const { return fromValue(tinylc::_ge(v, rhs.v)); }
 		
 		explicit operator bool() const {
-		    // Follow Lua logic: only 'nil' and 'false' are falsy
 		    return !(v.type == tinylc::Type::NIL || 
 		            (v.type == tinylc::Type::BOOL && v.b == false));
 		}
@@ -1431,9 +1332,7 @@ namespace lua {
 			return make_local(tinylc::tableGet(a, (uint32_t)index));
 		}
 
-		inline local operator[](int index) const {
-			return (*this)[(int64_t)index];
-		}
+		inline local operator[](int index) const { return (*this)[(int64_t)index]; }
 
 		inline table_slot operator[](const char* key) const {
 			auto* a = static_cast<tinylc::ObjTable*>(v.o);
@@ -1448,15 +1347,15 @@ namespace lua {
 		static inline local fromValue(const tinylc::Value& val) {
 			local r;
 			r.v = val;
-			if (val.type == tinylc::Type::OBJ)
-				r._register();
+			if (val.type == tinylc::Type::OBJ) { r._register(); }
+			
 			return r;
 		}
 	};
 
 
 	// variables
-	const inline lua::local nil{};
+	const inline lua::local nil{}; // nil
 
 
 
@@ -1469,8 +1368,7 @@ namespace lua {
 
 		uint32_t newCap = old->cap * 2;
 
-		ObjTableHash* h =
-			(ObjTableHash*)allocate(S, sizeof(ObjTableHash));
+		ObjTableHash* h = (ObjTableHash*)allocate(S, sizeof(ObjTableHash));
 
 		h->cap = newCap;
 		h->count = 0;
@@ -1488,8 +1386,7 @@ namespace lua {
 				uint32_t mask = newCap - 1;
 				uint32_t idx = hashValue(e.key) & mask;
 
-				while (h->data[idx].key.type != Type::NIL)
-					idx = (idx + 1) & mask;
+				while (h->data[idx].key.type != Type::NIL) { idx = (idx + 1) & mask; }
 
 				h->data[idx] = e;
 				h->count++;
@@ -1503,31 +1400,23 @@ namespace lua {
 	}
 
 	inline table_slot::operator local() const {
-		// No hash? → nil
-		if (!table->hash)
-			return lua::nil;
+		if (!table->hash) { return lua::nil; }
 
 		auto* slot = tinylc::hashFind(table, key);
 
-		if (slot->key.type == tinylc::Type::NIL)
-			return lua::nil;
+		if (slot->key.type == tinylc::Type::NIL) { return lua::nil; }
 
 		return make_local(slot->value);
 	}
 
 	inline table_slot& table_slot::operator=(const local& v) {
 		tinylc::ensureHash(table);
-
 		auto* h = tinylc::tableHash(table);
 
-		// 🔴 REQUIRED: grow BEFORE find
-		if (h->count + 1 > h->cap * 0.75)
-			lua::growHash(table);
+		if (h->count + 1 > h->cap * 0.75) { lua::growHash(table); }
 
 		auto* slot = tinylc::hashFind(table, key);
-
-		if (slot->key.type == tinylc::Type::NIL)
-			h->count++;
+		if (slot->key.type == tinylc::Type::NIL) { h->count++; }
 
 		slot->key = key;
 		slot->value = v.value();
@@ -1555,9 +1444,7 @@ namespace lua {
 		}
 	};
 
-	inline entry kv(const local& k, const local& v) {
-		return entry(k, v);
-	}
+	inline entry kv(const local& k, const local& v) { return entry(k, v); }
 
 	template <typename K, typename V>
 	inline entry kv(K&& k, V&& v) {
@@ -1576,10 +1463,8 @@ namespace lua {
 	}
 
 
-	// Init
-	inline void init(void) {
-		tinylc::init();
-	}
+	// Init (wrap)
+	inline void init(void) { tinylc::init(); }
 
 
 	// Standard library
@@ -1603,9 +1488,7 @@ namespace lua {
 	}
 
 
-	inline void print() {
-		std::cout << std::endl;
-	}
+	inline void print() { std::cout << std::endl; }
 
 	template <typename T, typename... Rest>
 	inline void print(const T& first, const Rest&... rest) {
@@ -1630,8 +1513,8 @@ namespace lua {
 
 		// Object types
 		switch (v.o->type) {
-		case ObjType::STRING: return local("string");
-		case ObjType::TABLE:  return local("table");
+			case ObjType::STRING: return local("string");
+			case ObjType::TABLE:  return local("table");
 			// case ObjType::FUNCTION: return local("function");
 			// case ObjType::THREA:   return local("thread");
 		}
@@ -1678,18 +1561,15 @@ namespace lua {
 
 		auto* t = static_cast<tinylc::ObjTable*>(out.value().o);
 
-		// Pre-count hash entries
 		uint32_t hashCount = 0;
 		for (const entry& e : init) {
 			if (e.isKV) hashCount++;
 		}
 
-		// Pre-allocate hash if needed
 		if (hashCount > 0) {
 			tinylc::ensureHash(t);
 			auto* h = tinylc::tableHash(t);
 
-			// Resize hash upfront to avoid rehashing
 			while (h->cap < hashCount * 2) {
 				// ... grow hash ...
 			}
