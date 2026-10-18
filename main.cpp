@@ -585,7 +585,7 @@ namespace tinylc {
 				break;
 			};
 
-			default: { printf("Unhandled *::ArrayKind:: (Int)%d\n", kind) std::abort(); };
+			default: { printf("Unhandled *::ArrayKind:: (Int)%d\n", kind); std::abort(); };
 		}
 
 		if (hash) {
@@ -800,7 +800,8 @@ namespace tinylc {
 				break;
 			};
 
-			default: { printf("Unhandled Value/Type (Type::*) (Int)%d\n", v.type) std::abort(); };
+			default: { printf("Unhandled Value/Type (Type::*) (Int)%d\n", v.type); std::abort(); };
+		}
 	}
 
 	inline const char* typeName(Type t) {
@@ -1033,10 +1034,11 @@ namespace tinylc {
 				case Type::NUM: { return Value(a.n == b.n); };
 				case Type::BOOL: { return Value(a.b == b.b); };
 				case Type::OBJ: { 
-					if (a.o->type == ObjType::STRING && b.o->type == ObjType::STRING) } { 
+					if (a.o->type == ObjType::STRING && b.o->type == ObjType::STRING) { 
 						return Value(a.o == b.o); 
 					}
 				}
+			}
 		}
 
 		// INT vs NUM
