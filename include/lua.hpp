@@ -2,11 +2,11 @@
 #include <initializer_list>
 #include <utility>
 
-#include "gc.hpp"
-#include "stdlib.hpp"
-#include "table.hpp"
-#include "string.hpp"
-#include "operator.hpp"
+#include "src/gc.hpp"
+#include "src/stdlib.hpp"
+#include "src/table.hpp"
+#include "src/string.hpp"
+#include "src/operator.hpp"
 
 namespace lua {
 	// Forward declartion
