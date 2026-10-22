@@ -1,16 +1,65 @@
-# TinyLC 0.1-preview
+# TinyLC
+### **Current version: 1.0.0**
 **TinyLC** is an experimental Lua-like DSL implemented in C++, designed for minimal overhead and optimization-friendly execution. 
 It aims to combine a simple Lua-like language with direct C++ integration, without relying on FFI.
 
-## What the DSL aims to be
+## Quick start
+### Clone the repo
+```bash
+git clone https://github.com/MB-Bidram/TinyLC.git
+cd TinyLC
+```
+### Compile (Windows only)
+```bash
+compile.bat
+```
+### Run
+```bash
+./build/tinylc-main.exe
+```
+Note:
+> The project was only tested on GNU GCC 15.2.0 and im not sure about compiler protability.
+> compile.bat uses gcc as the main compiler.
+---
+
+## Usage
+TinyLC uses a slightly different API than Lua itself (because of C++ limits)
+
+### Basic usage
+Before using TinyLC's API, initialize its runtime with lua::init().
+The following example demonstrates initializing TinyLC, declaring local values, comparing them, and printing the results.
+```cpp
+#include "include/lua.hpp"
+
+int main(void) {
+  lua::init();
+
+  lua::local a,b = 5, 6;
+
+  if (a == b) {
+    lua::print("A == B!");
+  } else {
+    lua::print("A != B");
+  }
+
+  lua::print(a, b);
+
+  return 0;
+}
+```
+Output
+```txt
+A != B
+5 6
+```
+---
+
+## What TinyLC aims to be
   - Simple and minimal
   - As close to Lua as possible
   - Nearly as flexible as Lua
-  - Avoid C++ RTTI complexity where possible
-  - Keep runtime structures simple and low-level
   - Minimal overhead
   - Near-native performance
-
 
 ## Performance-oriented design
 - No Virtual Machine loop
@@ -20,38 +69,19 @@ It aims to combine a simple Lua-like language with direct C++ integration, witho
 ## Trade-offs Compared to Lua
 ### Limitations
   - No debug library support, due to the lack of a traditional VM and VM stack
-  - Less flexible syntax ( C++ limits )
-  - No support for external libraries built around the Lua C API
+  - Less flexible syntax (C++ limits)
+  - No support for external libraries built around the Lua C API (For now)
 ### Advantages
-  - Native coroutine library ( Standard C++ Coroutines )
+  - Native coroutine library (Standard C++ Coroutines, Not implemented 'yet') 
   - Support for mixing C++ with the Lua-like DSL
   - Lightweight
 
 ## Current state
-  - currently a solo-developed project and remains under active development
+  - currently a solo-developed project
   - No function support
   - No library support
-  - No standard library
-  - Some behavior is still unstable
-  - Compiler portability is currently limited ( the project currently builds with GCC and Clang )
-
-
-## Design Overview (high-level, limited, reading the source code itself might be better)
-  ### Value Representation
-  The design uses a **Tagged Union** for its Values
-  because it is more CPU-friendly and avoids C++ heavy Polymorphism
-  
-  ### String Interning
-  Strings are **Interned**, meaning each unique string is stored only once in memory.
-  The runtime computes the string hash first, then performs a lookup in a global hash map:
-  - If found, return a pointer to the existing string
-  - If not, allocate a new memory
-  Because interned strings can be compared by pointer, equality checks avoid repeated full string comparisons.
-  This also improves the efficiency of string-keyed table lookups.
-
-  ### Garbage Collection
-  The garbage collector currently uses a **mark-and-sweep** design with an **epoch-based marking optimization**.
-
+  - No complete standard library
+  - Some behaviors are still unstable
 
 ## License
 
