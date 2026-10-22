@@ -1,0 +1,13 @@
+# Compiled binaries
+*.exe
+*.obj
+*.o
+*.dll
+
+# Build output
+build/
+out/
+
+# IDE and editor files
+.vs/
+.vscode/
