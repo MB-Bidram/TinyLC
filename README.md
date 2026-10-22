@@ -26,7 +26,8 @@ Note:
 TinyLC uses a slightly different API than Lua itself (because of C++ limits)
 
 ### Basic usage
-Before using TinyLC's API, initialize its runtime with `lua::init()`.
+Before using TinyLC's API, initialize its runtime with `lua::init()`
+
 The following example demonstrates initializing TinyLC, declaring local values, comparing them, and printing the results.
 ```cpp
 #include "include/lua.hpp"
