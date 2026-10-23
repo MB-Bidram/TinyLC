@@ -1,9 +1,7 @@
 #pragma once
 
-#include "hash.hpp"
 #include "gc.hpp"
-
-
+#include "hash.hpp"
 
 namespace tinylc {
 	void markTable(State& S, Obj* obj);

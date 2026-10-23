@@ -1,9 +1,11 @@
 #include "stdlib.hpp"
 
 namespace tinylc {
-	inline const char* objTypeName(ObjType t) {
+	const char* objTypeName(ObjType t) {
 		switch (t) {
-			case ObjType::STRING: { return "string"; };
+		case ObjType::STRING: {
+			return "string";
+		};
 			// case ObjType::TABLE:   return "table";
 			// case ObjType::FUNCTION:return "function";
 			// case ObjType::THREAD:  return "thread";
@@ -11,58 +13,56 @@ namespace tinylc {
 		return "object";
 	}
 
-	inline void _printObject(Obj* obj) {
+	void _printObject(Obj* obj) {
 		switch (obj->type) {
-			case ObjType::STRING: {
-				auto* s = static_cast<ObjString*>(obj);
-				std::cout << s->chars;
-				break;
-			};
-	
-			default: {
-				std::cout
-					<< objTypeName(obj->type)
-					<< ": "
-					<< "0x" << std::hex << (uintptr_t)obj << std::dec;
-				break;
-			};
+		case ObjType::STRING: {
+			auto* s = static_cast<ObjString*>(obj);
+			std::cout << s->chars;
+			break;
+		};
+
+		default: {
+			std::cout << objTypeName(obj->type) << ": "
+					  << "0x" << std::hex << (uintptr_t)obj << std::dec;
+			break;
+		};
 		}
 	}
 
-
-
-	inline bool stringToNumber(const ObjString* s, double& out) {
+	bool stringToNumber(const ObjString* s, double& out) {
 		char* end;
 		out = std::strtod(s->chars, &end);
-		if (end == s->chars) { return false; }
-		while (*end == ' ' || *end == '\t' || *end == '\n') { end++; }
+		if (end == s->chars) {
+			return false;
+		}
+		while (*end == ' ' || *end == '\t' || *end == '\n') {
+			end++;
+		}
 		return *end == '\0';
 	}
 
-
-	inline bool toNumber(const Value& v, double& out) {
+	bool toNumber(const Value& v, double& out) {
 		switch (v.type) {
-			case Type::INT: {
-				out = (double)v.i;
-				return true;
-			};
-	
-			case Type::NUM: {
-				out = v.n;
-				return true;
-			};
-	
-			case Type::OBJ: {
-				if (v.o->type == ObjType::STRING) {
-					return stringToNumber(
-						static_cast<ObjString*>(v.o),
-						out
-					);
-				}
-				return false;
-			};
-	
-			default: { return false; };
+		case Type::INT: {
+			out = (double)v.i;
+			return true;
+		};
+
+		case Type::NUM: {
+			out = v.n;
+			return true;
+		};
+
+		case Type::OBJ: {
+			if (v.o->type == ObjType::STRING) {
+				return stringToNumber(static_cast<ObjString*>(v.o), out);
+			}
+			return false;
+		};
+
+		default: {
+			return false;
+		};
 		}
 	}
 

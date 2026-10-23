@@ -22,14 +22,12 @@ namespace tinylc {
 		}
 	}
 
-
 	void markInternTable(State& S) {
 		for (size_t i = 0; i < S.capacity; ++i) {
 			for (InternNode* node = S.buckets[i]; node; node = node->next)
 				markObject(S, (Obj*)node->str);
 		}
 	}
-
 
 	// Memory
 	void* allocate(State& S, size_t size) {
@@ -48,7 +46,6 @@ namespace tinylc {
 		std::free(p);
 	}
 
-
 	void removeIntern(State& S, ObjString* victim) {
 		size_t index = victim->hash % S.capacity;
 		InternNode** p = &S.buckets[index];
@@ -64,14 +61,12 @@ namespace tinylc {
 		}
 	}
 
-
 	void* xmalloc(size_t size) {
 		void* p = malloc(size);
 		if (!p)
 			luaError("memory allocation failed");
 		return p;
 	}
-
 
 	// Debug
 	void debugListObjects(State& S) {
@@ -114,7 +109,6 @@ namespace tinylc {
 		deallocate(S, s, sizeof(ObjString));
 	}
 
-
 	void sweep(State& S) {
 		Obj** p = &S.allObjects;
 		while (*p) {
@@ -130,7 +124,7 @@ namespace tinylc {
 
 	[[gnu::cold]]
 	void collectGarbage(State& S) {
-		//debugListObjects(S);
+		// debugListObjects(S);
 		S.gcRunning = true;
 		S.currentEpoch++;
 

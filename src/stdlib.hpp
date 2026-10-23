@@ -1,11 +1,10 @@
-#pragma once 
+#pragma once
 
 #include <iostream>
 
 #include "common.hpp"
 #include "state.hpp"
 #include "string.hpp"
-
 
 namespace tinylc {
 	void _printValue(const Value& v);

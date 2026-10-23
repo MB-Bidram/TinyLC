@@ -86,7 +86,6 @@ namespace tinylc {
 		}
 	}
 
-
 	void ensureHash(ObjTable* t) {
 		if (t->hash) {
 			return;
@@ -110,7 +109,6 @@ namespace tinylc {
 	ObjTableHash* tableHash(ObjTable* t) {
 		return (ObjTableHash*)t->hash;
 	}
-
 
 	HashEntry* hashFind(ObjTable* t, const Value& key) {
 		if (!t->hash) {

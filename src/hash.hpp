@@ -3,10 +3,9 @@
 #include <cstring>
 
 #include "common.hpp"
-#include "state.hpp"
-#include "gc.hpp"
 #include "error.hpp"
-
+#include "gc.hpp"
+#include "state.hpp"
 
 namespace tinylc {
 	bool keyEqual(const Value& a, const Value& b);

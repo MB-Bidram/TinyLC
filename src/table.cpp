@@ -134,7 +134,6 @@ namespace tinylc {
 		a->kind = ObjTable::ArrayKind::MIXED;
 	}
 
-
 	void tableEnsure(ObjTable* a, uint32_t index) {
 		if (index < a->capacity) {
 			return;
@@ -182,7 +181,9 @@ namespace tinylc {
 	}
 
 	Value tableGet(ObjTable* a, uint32_t i) {
-		if (i >= a->size) { return Value(); } // nil
+		if (i >= a->size) {
+			return Value();
+		} // nil
 		return tableGetRaw(a, i);
 	}
 
@@ -190,35 +191,37 @@ namespace tinylc {
 		tableEnsure(a, index);
 
 		switch (a->kind) {
-			case ObjTable::ArrayKind::INT: {
-				if (v.type == Type::INT) {
-					a->ints[index] = v.i;
-					break;
-				}
-				if (v.type == Type::NUM) {
-					promoteIntToNum(a);
-					a->nums[index] = v.n;
-					break;
-				}
-				promoteToMixed(a);
-				a->values[index] = v;
+		case ObjTable::ArrayKind::INT: {
+			if (v.type == Type::INT) {
+				a->ints[index] = v.i;
 				break;
-			};
-			case ObjTable::ArrayKind::NUM: {
-				if (v.type == Type::INT || v.type == Type::NUM) {
-					a->nums[index] = (v.type == Type::INT) ? (double)v.i : v.n;
-					break;
-				}
-				promoteToMixed(a);
-				a->values[index] = v;
+			}
+			if (v.type == Type::NUM) {
+				promoteIntToNum(a);
+				a->nums[index] = v.n;
 				break;
-			};
-			case ObjTable::ArrayKind::MIXED: {
-				a->values[index] = v;
+			}
+			promoteToMixed(a);
+			a->values[index] = v;
+			break;
+		};
+		case ObjTable::ArrayKind::NUM: {
+			if (v.type == Type::INT || v.type == Type::NUM) {
+				a->nums[index] = (v.type == Type::INT) ? (double)v.i : v.n;
 				break;
-			};
+			}
+			promoteToMixed(a);
+			a->values[index] = v;
+			break;
+		};
+		case ObjTable::ArrayKind::MIXED: {
+			a->values[index] = v;
+			break;
+		};
 		}
 
-		if (index >= a->size) { a->size = index + 1; };
+		if (index >= a->size) {
+			a->size = index + 1;
+		};
 	}
 } // namespace tinylc

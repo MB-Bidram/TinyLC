@@ -1,21 +1,22 @@
 #pragma once
 
 #include "common.hpp"
-
-#if defined(_MSC_VER)
-#define TINYLC_ASSUME(cond) __assume(cond)
-#elif defined(__clang__)
-#define TINYLC_ASSUME(cond) __builtin_assume(cond)
-#elif defined(__GNUC__)
-#define TINYLC_ASSUME(cond)                                                                        \
-	do {                                                                                           \
-		if (!(cond))                                                                               \
-			__builtin_unreachable();                                                               \
-	} while (0)
-#else
-#define TINYLC_ASSUME(cond) ((void)0)
-#endif
+#include <cstring>
 
 namespace tinylc {
-	double assume_number(const Value& v);
+	double numberSlow(Value v);
+
+	inline double assume_number(const Value& v) {
+		if (v.type == Type::INT)
+			return double(v.i);
+		if (v.type == Type::NUM)
+			return v.n;
+		return numberSlow(v);
+	}
+
+	inline int64_t integerFromBits(uint64_t bits) {
+		int64_t result;
+		std::memcpy(&result, &bits, sizeof(result));
+		return result;
+	}
 } // namespace tinylc

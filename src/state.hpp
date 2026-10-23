@@ -3,9 +3,8 @@
 #include <cstdlib>
 #include <cstring>
 
-#include "table.hpp"
 #include "common.hpp"
-
+#include "table.hpp"
 
 namespace tinylc {
 	struct State {

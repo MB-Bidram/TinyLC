@@ -10,7 +10,6 @@ namespace tinylc {
 	using FreeFn = void (*)(State&, Obj*);
 	void* xmalloc(size_t size);
 
-
 	enum class Type : uint8_t {
 		NIL,
 		INT,
@@ -26,14 +25,12 @@ namespace tinylc {
 		STRING,
 	};
 
-
 	struct Obj {
 		ObjType type;
 		uint32_t markEpoch;
 		Obj* next;
 		FreeFn free;
 	};
-
 
 	struct Value {
 		union {
@@ -61,13 +58,11 @@ namespace tinylc {
 			, o(v) {}
 	};
 
-
 	struct ObjString : Obj {
 		size_t length;
 		uint32_t hash;
 		char* chars;
 	};
-
 
 	struct ObjTable : Obj {
 		uint32_t size;
@@ -85,7 +80,7 @@ namespace tinylc {
 			Value* values;
 		};
 
-		void* hash; // opaque cold pointer
+		void* hash;
 	};
 
 	struct HashEntry {

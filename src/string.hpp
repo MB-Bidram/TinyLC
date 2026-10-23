@@ -1,9 +1,8 @@
 #pragma once
 
-#include "gc.hpp"
 #include "common.hpp"
+#include "gc.hpp"
 #include "state.hpp"
-
 
 namespace tinylc {
 	const char* objTypeName(ObjType t);

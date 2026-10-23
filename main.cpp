@@ -1,12 +1,17 @@
 #include "include/lua.hpp"
 
-using namespace lua;
-
 int main(void) {
-    init();
+  lua::init();
 
-    local a = 12;
-    print(a);
+  lua::local a = 5, b = 6;
 
-    return 0;
+  if (a == b) {
+    lua::print("A == B!");
+  } else {
+    lua::print("A != B");
+  }
+
+  lua::print(a, b);
+
+  return 0;
 }

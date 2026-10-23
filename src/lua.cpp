@@ -1,226 +1,35 @@
 #include "lua.hpp"
 
 namespace lua {
-	const tinylc::Value& local::value() const {
-		return v;
-	}
-
-	// Helper to register
-	void local::_register() noexcept {
+	void local::_registerObject() noexcept {
 		if (!tinylc::G)
 			return;
-		if (v.type != tinylc::Type::OBJ)
-			return;
-		if (rootIndex >= 0)
-			return;
-
 		auto& S = tinylc::runtime();
-
-		if (S.rootTop >= S.rootCap) {
+		if (S.rootTop >= S.rootCap)
 			tinylc::growRoots(S);
-		}
-
 		rootIndex = S.rootTop;
 		S.roots[S.rootTop++] = &v;
 	}
 
-	void local::_unregister() noexcept {
+	void local::_unregisterObject(int32_t index) noexcept {
 		if (!tinylc::G)
 			return;
-		if (rootIndex < 0)
-			return;
-
 		auto& S = tinylc::runtime();
-
-		if (S.rootTop == 0) {
-			rootIndex = -1;
+		if (S.rootTop == 0)
 			return;
+		const uint32_t last = --S.rootTop;
+		if (uint32_t(index) != last) {
+			S.roots[index] = S.roots[last];
+			auto* moved = reinterpret_cast<local*>(reinterpret_cast<char*>(S.roots[index]) -
+												   offsetof(local, v));
+			moved->rootIndex = index;
 		}
-
-		uint32_t last = S.rootTop - 1;
-		S.rootTop--;
-
-		if ((uint32_t)rootIndex != last) {
-			S.roots[rootIndex] = S.roots[last];
-
-			lua::local* moved = reinterpret_cast<lua::local*>((char*)S.roots[rootIndex] -
-															  offsetof(lua::local, v));
-
-			moved->rootIndex = rootIndex;
-		}
-
-		rootIndex = -1;
 	}
-
-	local::local()
-		: v()
-		, rootIndex(-1) {}
-
-	local::local(int i) noexcept
-		: v((int64_t)i)
-		, rootIndex(-1) {}
-
-	local::local(int64_t i) noexcept
-		: v(i)
-		, rootIndex(-1) {}
-
-	local::local(double n) noexcept
-		: v(n)
-		, rootIndex(-1) {}
-
-	local::local(bool b) noexcept
-		: v(b)
-		, rootIndex(-1) {}
 
 	local::local(const char* s)
 		: v(tinylc::makeString(s))
 		, rootIndex(-1) {
-		_register(); // gc protection for strings
-	}
-
-	local::local(const local& other)
-		: v(other.v)
-		, rootIndex(-1) {
 		_register();
-	}
-
-	local& local::operator=(const local& other) {
-		if (this == &other)
-			return *this;
-
-		// Unregister if we were tracking an object
-		_unregister();
-		v = other.v;
-
-		// Register if new value is an object
-		_register();
-
-		return *this;
-	}
-
-	local::local(local&& other) noexcept
-		: v(other.v)
-		, rootIndex(-1) {
-		_register();
-	}
-
-	local& local::operator=(local&& other) noexcept {
-		if (this == &other)
-			return *this;
-
-		_unregister();
-		v = other.v;
-		_register();
-
-		return *this;
-	}
-
-	local::~local() noexcept {
-		_unregister();
-	}
-
-
-	local local::operator+(const local& rhs) const {
-		return fromValue(tinylc::_add(v, rhs.v));
-	}
-
-	local local::operator-(const local& rhs) const {
-		return fromValue(tinylc::_sub(v, rhs.v));
-	}
-
-	local local::operator*(const local& rhs) const {
-		return fromValue(tinylc::_mul(v, rhs.v));
-	}
-
-	local local::operator/(const local& rhs) const {
-		return fromValue(tinylc::_div(v, rhs.v));
-	}
-
-	local& local::operator+=(int64_t rhs) {
-		if (v.type == tinylc::Type::INT) {
-			v.i += rhs;
-			return *this;
-		}
-
-		double n;
-		if (tinylc::toNumber(v, n)) {
-			int64_t as_int = (int64_t)n + rhs;
-			_unregister();
-			v = tinylc::Value(as_int);
-			return *this;
-		}
-		tinylc::arithmeticError();
-		return *this;
-	}
-
-	local& local::operator+=(const local& rhs) {
-		v = tinylc::_add(v, rhs.v);
-		_register();
-		return *this;
-	}
-
-	local& local::operator-=(int64_t rhs) {
-		if (v.type == tinylc::Type::INT) {
-			v.i -= rhs;
-			return *this;
-		}
-
-		double n;
-		if (tinylc::toNumber(v, n)) {
-			int64_t as_int = (int64_t)n - rhs;
-			_unregister();
-			v = tinylc::Value(as_int);
-			return *this;
-		}
-		tinylc::arithmeticError();
-		return *this;
-	}
-
-	local& local::operator-=(const local& rhs) {
-		v = tinylc::_sub(v, rhs.v);
-		_register();
-		return *this;
-	}
-
-	local& local::operator*=(const local& rhs) {
-		v = tinylc::_mul(v, rhs.v);
-		_register();
-		return *this;
-	}
-
-	local& local::operator*=(int64_t rhs) {
-		if (v.type == tinylc::Type::INT) {
-			v.i *= rhs;
-			return *this;
-		}
-
-		double n;
-		if (tinylc::toNumber(v, n)) {
-			_unregister();
-			v = tinylc::Value(n * rhs);
-			return *this;
-		}
-
-		tinylc::arithmeticError();
-		return *this;
-	}
-
-
-	local& local::operator/=(const local& rhs) {
-		v = tinylc::_div(v, rhs.v);
-		_register();
-		return *this;
-	}
-
-
-	local local::operator==(const local& rhs) const { return fromValue(tinylc::_eq(v, rhs.v)); }
-	local local::operator<(const local& rhs) const { return fromValue(tinylc::_lt(v, rhs.v)); }
-	local local::operator>(const local& rhs) const { return fromValue(tinylc::_gt(v, rhs.v)); }
-	local local::operator<=(const local& rhs) const { return fromValue(tinylc::_le(v, rhs.v)); }
-	local local::operator>=(const local& rhs) const { return fromValue(tinylc::_ge(v, rhs.v)); }
-
-	local::operator bool() const {
-		return !(v.type == tinylc::Type::NIL || (v.type == tinylc::Type::BOOL && v.b == false));
 	}
 
 	local local::operator[](int64_t index) const {
@@ -232,7 +41,9 @@ namespace lua {
 		return make_local(tinylc::tableGet(a, (uint32_t)index));
 	}
 
-	local local::operator[](int index) const { return (*this)[(int64_t)index]; }
+	local local::operator[](int index) const {
+		return (*this)[(int64_t)index];
+	}
 
 	table_slot local::operator[](const char* key) const {
 		auto* a = static_cast<tinylc::ObjTable*>(v.o);
@@ -243,14 +54,6 @@ namespace lua {
 		auto* a = static_cast<tinylc::ObjTable*>(v.o);
 		return table_slot(a, key.value());
 	}
-
-	local local::fromValue(const tinylc::Value& val) {
-		local r;
-		r.v = val;
-		r._register();
-		return r;
-	}
-
 
 	// Table
 	void growHash(tinylc::ObjTable* t) {
@@ -329,11 +132,9 @@ namespace lua {
 		return *this;
 	}
 
-
 	entry kv(const local& k, const local& v) {
 		return entry(k, v);
 	}
-
 
 	// Local exposing
 	lua::local make_local(const tinylc::Value& v) {
@@ -343,12 +144,10 @@ namespace lua {
 		return tmp;
 	}
 
-
 	// Init (wrap)
 	void init(void) {
 		tinylc::init();
 	}
-
 
 	// Standard library
 	local tonumber(const local& x) {
@@ -369,7 +168,9 @@ namespace lua {
 		return !(x.type == tinylc::Type::NIL || (x.type == tinylc::Type::BOOL && x.b == false));
 	}
 
-	inline void print() { std::cout << std::endl; }
+	inline void print() {
+		std::cout << std::endl;
+	}
 
 	local type(const local& x) {
 		using namespace tinylc;
@@ -405,7 +206,6 @@ namespace lua {
 		return cond;
 	}
 
-
 	local collectgarbage(const char* opt) {
 		auto& S = tinylc::runtime();
 		if (!std::strcmp(opt, "collect"))
@@ -415,14 +215,12 @@ namespace lua {
 		return nil;
 	}
 
-
 	local table(void) {
 		lua::local out;
 		out.v = tinylc::makeTable();
 		out._register();
 		return out;
 	}
-
 
 	local table(std::initializer_list<entry> init) {
 		lua::local out;
@@ -462,7 +260,6 @@ namespace lua {
 
 		return out;
 	}
-
 
 	local get(const local& arr, int64_t index) {
 		auto* a = static_cast<tinylc::ObjTable*>(arr.value().o);

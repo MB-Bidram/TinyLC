@@ -33,19 +33,19 @@ The following example demonstrates initializing TinyLC, declaring local values, 
 #include "include/lua.hpp"
 
 int main(void) {
-  lua::init();
+    lua::init();
 
-  lua::local a,b = 5, 6;
+    lua::local a = 5, b = 6;
 
-  if (a == b) {
-    lua::print("A == B!");
-  } else {
-    lua::print("A != B");
-  }
+    if (a == b) {
+        lua::print("A == B!");
+    } else {
+        lua::print("A != B");
+    }
 
-  lua::print(a, b);
+    lua::print(a, b);
 
-  return 0;
+    return 0;
 }
 ```
 Output

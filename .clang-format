@@ -1,9 +1,6 @@
-
 BasedOnStyle: LLVM
 Language: Cpp
 Standard: Auto
-
-# Indentation: tabs, with a 4-column tab width
 UseTab: Always
 IndentWidth: 4
 TabWidth: 4
@@ -12,21 +9,15 @@ IndentCaseLabels: false
 AccessModifierOffset: -4
 NamespaceIndentation: All
 IndentPPDirectives: None
-
-# Braces
 BreakBeforeBraces: Attach
 BraceWrapping:
   AfterCaseLabel: false
-
-# Compact functions, but don't compress control flow
 AllowShortFunctionsOnASingleLine: Inline
 AllowShortBlocksOnASingleLine: Empty
 AllowShortIfStatementsOnASingleLine: Never
 AllowShortLoopsOnASingleLine: false
 AllowShortCaseLabelsOnASingleLine: false
 AllowShortEnumsOnASingleLine: false
-
-# Line width and wrapping
 ColumnLimit: 100
 BreakBeforeBinaryOperators: None
 BinPackArguments: true
@@ -34,28 +25,20 @@ BinPackParameters: true
 AlignAfterOpenBracket: Align
 BreakConstructorInitializers: BeforeComma
 ConstructorInitializerIndentWidth: 4
-
-# Pointer and reference style
 DerivePointerAlignment: false
 PointerAlignment: Left
 ReferenceAlignment: Pointer
-
-# Spacing
 SpaceBeforeParens: ControlStatements
 SpaceInEmptyParentheses: false
 SpacesInParentheses: false
 SpacesInSquareBrackets: false
 SpaceAfterCStyleCast: false
 SpaceBeforeInheritanceColon: true
-
-# Keep code visually simple
 AlignConsecutiveAssignments: None
 AlignConsecutiveDeclarations: None
 AlignTrailingComments: false
 SortIncludes: false
 ReflowComments: false
 CompactNamespaces: false
-
-# Blank lines
 MaxEmptyLinesToKeep: 2
 KeepEmptyLinesAtTheStartOfBlocks: false

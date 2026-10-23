@@ -12,5 +12,5 @@ namespace tinylc {
 	[[gnu::cold, noreturn]]
 	void arithmeticError(void) {
 		luaError("attempt to perform arithmetic on incompatible types");
-	}
+  }
 } // namespace tinylc
